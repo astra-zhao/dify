@@ -1,6 +1,7 @@
 import json
 import logging
 from collections.abc import Generator
+from datetime import datetime, timezone
 from typing import Optional, Union
 
 from sqlalchemy import and_
@@ -35,22 +36,23 @@ logger = logging.getLogger(__name__)
 
 class MessageBasedAppGenerator(BaseAppGenerator):
 
-    def _handle_response(self, application_generate_entity: Union[
-        ChatAppGenerateEntity,
-        CompletionAppGenerateEntity,
-        AgentChatAppGenerateEntity,
-        AdvancedChatAppGenerateEntity
-    ],
-                         queue_manager: AppQueueManager,
-                         conversation: Conversation,
-                         message: Message,
-                         user: Union[Account, EndUser],
-                         stream: bool = False) \
-            -> Union[
-                ChatbotAppBlockingResponse,
-                CompletionAppBlockingResponse,
-                Generator[Union[ChatbotAppStreamResponse, CompletionAppStreamResponse], None, None]
-            ]:
+    def _handle_response(
+            self, application_generate_entity: Union[
+                ChatAppGenerateEntity,
+                CompletionAppGenerateEntity,
+                AgentChatAppGenerateEntity,
+                AdvancedChatAppGenerateEntity
+            ],
+            queue_manager: AppQueueManager,
+            conversation: Conversation,
+            message: Message,
+            user: Union[Account, EndUser],
+            stream: bool = False,
+    ) -> Union[
+        ChatbotAppBlockingResponse,
+        CompletionAppBlockingResponse,
+        Generator[Union[ChatbotAppStreamResponse, CompletionAppStreamResponse], None, None]
+    ]:
         """
         Handle response.
         :param application_generate_entity: application generate entity
@@ -137,6 +139,7 @@ class MessageBasedAppGenerator(BaseAppGenerator):
         """
         Initialize generate records
         :param application_generate_entity: application generate entity
+        :conversation conversation
         :return:
         """
         app_config = application_generate_entity.app_config
@@ -158,8 +161,8 @@ class MessageBasedAppGenerator(BaseAppGenerator):
             model_id = None
         else:
             app_model_config_id = app_config.app_model_config_id
-            model_provider = application_generate_entity.model_config.provider
-            model_id = application_generate_entity.model_config.model
+            model_provider = application_generate_entity.model_conf.provider
+            model_id = application_generate_entity.model_conf.model
             override_model_configs = None
             if app_config.app_model_config_from == EasyUIBasedAppModelConfigFrom.ARGS \
                     and app_config.app_mode in [AppMode.AGENT_CHAT, AppMode.CHAT, AppMode.COMPLETION]:
@@ -191,6 +194,9 @@ class MessageBasedAppGenerator(BaseAppGenerator):
             db.session.add(conversation)
             db.session.commit()
             db.session.refresh(conversation)
+        else:
+            conversation.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            db.session.commit()
 
         message = Message(
             app_id=app_config.app_id,
@@ -257,7 +263,7 @@ class MessageBasedAppGenerator(BaseAppGenerator):
 
         return introduction
 
-    def _get_conversation(self, conversation_id: str) -> Conversation:
+    def _get_conversation(self, conversation_id: str):
         """
         Get conversation by conversation id
         :param conversation_id: conversation id
@@ -268,6 +274,9 @@ class MessageBasedAppGenerator(BaseAppGenerator):
             .filter(Conversation.id == conversation_id)
             .first()
         )
+
+        if not conversation:
+            raise ConversationNotExistsError()
 
         return conversation
 

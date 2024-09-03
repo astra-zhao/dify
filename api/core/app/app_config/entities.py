@@ -3,8 +3,9 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
+from core.file.file_obj import FileExtraConfig
 from core.model_runtime.entities.message_entities import PromptMessageRole
-from models.model import AppMode
+from models import AppMode
 
 
 class ModelConfigEntity(BaseModel):
@@ -81,33 +82,23 @@ class PromptTemplateEntity(BaseModel):
     advanced_completion_prompt_template: Optional[AdvancedCompletionPromptTemplateEntity] = None
 
 
+class VariableEntityType(str, Enum):
+    TEXT_INPUT = "text-input"
+    SELECT = "select"
+    PARAGRAPH = "paragraph"
+    NUMBER = "number"
+    EXTERNAL_DATA_TOOL = "external-data-tool"
+
+
 class VariableEntity(BaseModel):
     """
     Variable Entity.
     """
-    class Type(Enum):
-        TEXT_INPUT = 'text-input'
-        SELECT = 'select'
-        PARAGRAPH = 'paragraph'
-        NUMBER = 'number'
-
-        @classmethod
-        def value_of(cls, value: str) -> 'VariableEntity.Type':
-            """
-            Get value of given mode.
-
-            :param value: mode value
-            :return: mode
-            """
-            for mode in cls:
-                if mode.value == value:
-                    return mode
-            raise ValueError(f'invalid variable type value {value}')
 
     variable: str
     label: str
     description: Optional[str] = None
-    type: Type
+    type: VariableEntityType
     required: bool = False
     max_length: Optional[int] = None
     options: Optional[list[str]] = None
@@ -154,8 +145,13 @@ class DatasetRetrieveConfigEntity(BaseModel):
 
     retrieve_strategy: RetrieveStrategy
     top_k: Optional[int] = None
-    score_threshold: Optional[float] = None
+    score_threshold: Optional[float] = .0
+    rerank_mode: Optional[str] = 'reranking_model'
     reranking_model: Optional[dict] = None
+    weights: Optional[dict] = None
+    reranking_enabled: Optional[bool] = True
+
+
 
 
 class DatasetEntity(BaseModel):
@@ -183,11 +179,14 @@ class TextToSpeechEntity(BaseModel):
     language: Optional[str] = None
 
 
-class FileExtraConfig(BaseModel):
+class TracingConfigEntity(BaseModel):
     """
-    File Upload Entity.
+    Tracing Config Entity.
     """
-    image_config: Optional[dict[str, Any]] = None
+    enabled: bool
+    tracing_provider: str
+
+
 
 
 class AppAdditionalFeatures(BaseModel):
@@ -199,7 +198,7 @@ class AppAdditionalFeatures(BaseModel):
     more_like_this: bool = False
     speech_to_text: bool = False
     text_to_speech: Optional[TextToSpeechEntity] = None
-
+    trace_config: Optional[TracingConfigEntity] = None
 
 class AppConfig(BaseModel):
     """

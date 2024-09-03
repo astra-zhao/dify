@@ -83,6 +83,8 @@ const Documents: FC<IDocumentsProps> = ({ datasetId }) => {
   const [notionPageSelectorModalVisible, setNotionPageSelectorModalVisible] = useState(false)
   const [timerCanRun, setTimerCanRun] = useState(true)
   const isDataSourceNotion = dataset?.data_source_type === DataSourceType.NOTION
+  const isDataSourceWeb = dataset?.data_source_type === DataSourceType.WEB
+  const isDataSourceFile = dataset?.data_source_type === DataSourceType.FILE
   const embeddingAvailable = !!dataset?.embedding_available
 
   const query = useMemo(() => {
@@ -199,19 +201,20 @@ const Documents: FC<IDocumentsProps> = ({ datasetId }) => {
       <div className='flex flex-col px-6 py-4 flex-1'>
         <div className='flex items-center justify-between flex-wrap'>
           <Input
-            showPrefix
+            showLeftIcon
             wrapperClassName='!w-[200px]'
             className='!h-8 !text-[13px]'
-            onChange={debounce(setSearchValue, 500)}
+            onChange={debounce(e => setSearchValue(e.target.value), 500)}
             value={searchValue}
           />
           <div className='flex gap-2 justify-center items-center !h-8'>
             <RetryButton datasetId={datasetId} />
             {embeddingAvailable && (
-              <Button type='primary' onClick={routeToDocCreate} className='!h-8 !text-[13px] !shrink-0'>
+              <Button variant='primary' onClick={routeToDocCreate} className='shrink-0'>
                 <PlusIcon className='h-4 w-4 mr-2 stroke-current' />
                 {isDataSourceNotion && t('datasetDocuments.list.addPages')}
-                {!isDataSourceNotion && t('datasetDocuments.list.addFile')}
+                {isDataSourceWeb && t('datasetDocuments.list.addUrl')}
+                {isDataSourceFile && t('datasetDocuments.list.addFile')}
               </Button>
             )}
           </div>

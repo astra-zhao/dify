@@ -10,6 +10,7 @@ from core.model_runtime.entities.message_entities import (
     PromptMessageRole,
     PromptMessageTool,
     SystemPromptMessage,
+    ToolPromptMessage,
     UserPromptMessage,
 )
 from core.model_runtime.errors.validate import CredentialsValidateFailedError
@@ -152,7 +153,8 @@ class ZhipuAILargeLanguageModel(_CommonZhipuaiAI, LargeLanguageModel):
         :return: full response or stream response chunk generator result
         """
         extra_model_kwargs = {}
-        if stop:
+        # request to glm-4v-plus with stop words will always response "finish_reason":"network_error"
+        if stop and model!= 'glm-4v-plus':
             extra_model_kwargs['stop'] = stop
 
         client = ZhipuAI(
@@ -173,7 +175,7 @@ class ZhipuAILargeLanguageModel(_CommonZhipuaiAI, LargeLanguageModel):
             if copy_prompt_message.role in [PromptMessageRole.USER, PromptMessageRole.SYSTEM, PromptMessageRole.TOOL]:
                 if isinstance(copy_prompt_message.content, list):
                     # check if model is 'glm-4v'
-                    if model != 'glm-4v':
+                    if model not in ('glm-4v', 'glm-4v-plus'):
                         # not support list message
                         continue
                     # get image and 
@@ -206,7 +208,7 @@ class ZhipuAILargeLanguageModel(_CommonZhipuaiAI, LargeLanguageModel):
                 else:
                     new_prompt_messages.append(copy_prompt_message)
 
-        if model == 'glm-4v':
+        if model == 'glm-4v' or model == 'glm-4v-plus':
             params = self._construct_glm_4v_parameter(model, new_prompt_messages, model_parameters)
         else:
             params = {
@@ -303,7 +305,7 @@ class ZhipuAILargeLanguageModel(_CommonZhipuaiAI, LargeLanguageModel):
 
         return params
 
-    def _construct_glm_4v_messages(self, prompt_message: Union[str | list[PromptMessageContent]]) -> list[dict]:
+    def _construct_glm_4v_messages(self, prompt_message: Union[str, list[PromptMessageContent]]) -> list[dict]:
         if isinstance(prompt_message, str):
             return [{'type': 'text', 'text': prompt_message}]
 
@@ -443,6 +445,7 @@ class ZhipuAILargeLanguageModel(_CommonZhipuaiAI, LargeLanguageModel):
                     delta=LLMResultChunkDelta(
                         index=delta.index,
                         message=assistant_prompt_message,
+                        finish_reason=delta.finish_reason
                     )
                 )
 
@@ -462,6 +465,8 @@ class ZhipuAILargeLanguageModel(_CommonZhipuaiAI, LargeLanguageModel):
         elif isinstance(message, AssistantPromptMessage):
             message_text = f"{ai_prompt} {content}"
         elif isinstance(message, SystemPromptMessage):
+            message_text = content
+        elif isinstance(message, ToolPromptMessage):
             message_text = content
         else:
             raise ValueError(f"Got unknown type {message}")

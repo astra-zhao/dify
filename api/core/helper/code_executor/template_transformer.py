@@ -2,25 +2,15 @@ import json
 import re
 from abc import ABC, abstractmethod
 from base64 import b64encode
-from typing import Optional
-
-from pydantic import BaseModel
-
-from core.helper.code_executor.entities import CodeDependency
 
 
-class TemplateTransformer(ABC, BaseModel):
+class TemplateTransformer(ABC):
     _code_placeholder: str = '{{code}}'
     _inputs_placeholder: str = '{{inputs}}'
     _result_tag: str = '<<RESULT>>'
 
     @classmethod
-    def get_standard_packages(cls) -> set[str]:
-        return set()
-
-    @classmethod
-    def transform_caller(cls, code: str, inputs: dict,
-                         dependencies: Optional[list[CodeDependency]] = None) -> tuple[str, str, list[CodeDependency]]:
+    def transform_caller(cls, code: str, inputs: dict) -> tuple[str, str]:
         """
         Transform code to python runner
         :param code: code
@@ -30,14 +20,7 @@ class TemplateTransformer(ABC, BaseModel):
         runner_script = cls.assemble_runner_script(code, inputs)
         preload_script = cls.get_preload_script()
 
-        packages = dependencies or []
-        standard_packages = cls.get_standard_packages()
-        for package in standard_packages:
-            if package not in packages:
-                packages.append(CodeDependency(name=package, version=''))
-        packages = list({dep.name: dep for dep in packages if dep.name}.values())
-
-        return runner_script, preload_script, packages
+        return runner_script, preload_script
 
     @classmethod
     def extract_result_str_from_response(cls, response: str) -> str:

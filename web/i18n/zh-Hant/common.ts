@@ -12,6 +12,7 @@ const translation = {
     cancel: '取消',
     clear: '清空',
     save: '儲存',
+    saveAndEnable: '儲存並啟用',
     edit: '編輯',
     add: '新增',
     added: '已新增',
@@ -59,6 +60,10 @@ const translation = {
       ukUA: '烏克蘭語',
       viVN: '越南語',
       plPL: '波蘭語',
+      roRO: '羅馬尼亞語',
+      hiIN: '印地語',
+      trTR: '土耳其語',
+      faIR: '波斯語',
     },
   },
   unit: {
@@ -119,6 +124,7 @@ const translation = {
   },
   userProfile: {
     settings: '設定',
+    emailSupport: '電子郵件支援',
     workspace: '工作空間',
     createWorkspace: '建立工作空間',
     helpCenter: '幫助文件',
@@ -156,6 +162,9 @@ const translation = {
     langGeniusAccountTip: '您的 Dify 賬號和相關的使用者資料。',
     editName: '編輯名字',
     showAppLength: '顯示 {{length}} 個應用',
+    delete: '刪除帳戶',
+    deleteTip: '刪除您的帳戶將永久刪除您的所有資料並且無法恢復。',
+    deleteConfirmTip: '請將以下內容從您的註冊電子郵件發送至 ',
   },
   members: {
     team: '團隊',
@@ -169,6 +178,8 @@ const translation = {
     adminTip: '能夠建立應用程式和管理團隊設定',
     normal: '成員',
     normalTip: '只能使用應用程式，不能建立應用程式',
+    editor: '編輯',
+    editorTip: '能夠建立並編輯應用程式，不能管理團隊設定',
     inviteTeamMember: '新增團隊成員',
     inviteTeamMemberTip: '對方在登入後可以訪問你的團隊資料。',
     email: '郵箱',
@@ -185,6 +196,7 @@ const translation = {
     removeFromTeamTip: '將取消團隊訪問',
     setAdmin: '設為管理員',
     setMember: '設為普通成員',
+    setEditor: '設為編輯',
     disinvite: '取消邀請',
     deleteMember: '刪除成員',
     you: '（你）',
@@ -368,7 +380,7 @@ const translation = {
   apiBasedExtension: {
     title: 'API 擴充套件提供了一個集中式的 API 管理，在此統一新增 API 配置後，方便在 Dify 上的各類應用中直接使用。',
     link: '瞭解如何開發您自己的 API 擴充套件。',
-    linkUrl: 'https://docs.dify.ai/v/zh-hans/advanced/api_based_extension',
+    linkUrl: 'https://docs.dify.ai/v/zh-hans/guides/extension/api-based-extension',
     add: '新增 API 擴充套件',
     selector: {
       title: 'API 擴充套件',
@@ -401,7 +413,7 @@ const translation = {
     latestAvailable: 'Dify {{version}} 已是最新版本。',
   },
   appMenus: {
-    overview: '概覽',
+    overview: '監控',
     promptEng: '編排',
     apiAccess: '訪問 API',
     logAndAnn: '日誌與標註',

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { FC } from 'react'
-import cn from 'classnames'
+import { RiQuestionLine } from '@remixicon/react'
 import { ValidatingTip } from '../../key-validator/ValidateStatus'
 import type {
   CredentialFormSchema,
@@ -14,9 +14,9 @@ import type {
 import { FormTypeEnum } from '../declarations'
 import { useLanguage } from '../hooks'
 import Input from './Input'
+import cn from '@/utils/classnames'
 import { SimpleSelect } from '@/app/components/base/select'
-import Tooltip from '@/app/components/base/tooltip-plus'
-import { HelpCircle } from '@/app/components/base/icons/src/vender/line/general'
+import Tooltip from '@/app/components/base/tooltip'
 import Radio from '@/app/components/base/radio'
 type FormProps = {
   className?: string
@@ -68,6 +68,16 @@ const Form: FC<FormProps> = ({
     onChange({ ...value, [key]: val, ...shouldClearVariable })
   }
 
+  // convert tooltip '\n' to <br />
+  const renderTooltipContent = (content: string) => {
+    return content.split('\n').map((line, index, array) => (
+      <Fragment key={index}>
+        {line}
+        {index < array.length - 1 && <br />}
+      </Fragment>
+    ))
+  }
+
   const renderField = (formSchema: CredentialFormSchema) => {
     const tooltip = formSchema.tooltip
     const tooltipContent = (tooltip && (
@@ -75,10 +85,10 @@ const Form: FC<FormProps> = ({
         <Tooltip popupContent={
           // w-[100px] caused problem
           <div className=''>
-            {tooltip[language] || tooltip.en_US}
+            {renderTooltipContent(tooltip[language] || tooltip.en_US)}
           </div>
         } >
-          <HelpCircle className='w-3 h-3  text-gray-500' />
+          <RiQuestionLine className='w-3 h-3  text-gray-500' />
         </Tooltip>
       </span>))
     if (formSchema.type === FormTypeEnum.textInput || formSchema.type === FormTypeEnum.secretInput || formSchema.type === FormTypeEnum.textNumber) {
@@ -227,6 +237,7 @@ const Form: FC<FormProps> = ({
         variable,
         label,
         show_on,
+        required,
       } = formSchema as CredentialFormSchemaRadio
 
       if (show_on.length && !show_on.every(showOnItem => value[showOnItem.variable] === showOnItem.value))
@@ -236,12 +247,17 @@ const Form: FC<FormProps> = ({
         <div key={variable} className={cn(itemClassName, 'py-3')}>
           <div className='flex items-center justify-between py-2 text-sm text-gray-900'>
             <div className='flex items-center space-x-2'>
-              <span>{label[language] || label.en_US}</span>
+              <span className={cn(fieldLabelClassName, 'py-2 text-sm text-gray-900')}>{label[language] || label.en_US}</span>
+              {
+                required && (
+                  <span className='ml-1 text-red-500'>*</span>
+                )
+              }
               {tooltipContent}
             </div>
             <Radio.Group
               className='flex items-center'
-              value={value[variable] ? 1 : 0}
+              value={value[variable] === null ? undefined : (value[variable] ? 1 : 0)}
               onChange={val => handleFormChange(variable, val === 1)}
             >
               <Radio value={1} className='!mr-1'>True</Radio>
